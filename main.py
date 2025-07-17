@@ -61,6 +61,7 @@ async def ocr_pdf(file: UploadFile = File(...)):
                 text = pytesseract.image_to_string(img)
                 ocr_text += text + "\n\n"
             except Exception as e:
+                print(f"Error processing {img_path}: {e}")
                 return JSONResponse(content={"error": f"OCR failed on {img_path}"}, status_code=500)
 
         return {"text": ocr_text.strip()}
