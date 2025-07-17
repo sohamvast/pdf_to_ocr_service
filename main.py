@@ -1,16 +1,39 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.security.api_key import APIKeyHeader
 import subprocess
 import tempfile
+from typing import Optional
 import os
 import shutil
 from PIL import Image
 import pytesseract
 import glob
+from dotenv import load_dotenv
+
+# Define the API Key name and dependency
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+load_dotenv()  # Load environment variables from .env file
+API_KEY = os.getenv("API_KEY")
 
 app = FastAPI()
 
-@app.post("/ocr-pdf")
+# Dependency to validate API Key
+def get_api_key(api_key_header: Optional[str] = Depends(api_key_header)):
+    expected_api_key = os.environ.get("API_KEY")
+    print('expected_api_key: ',expected_api_key)
+    print('api_key_header: ',api_key_header)
+    if api_key_header == expected_api_key:
+        return api_key_header
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid or missing API Key",
+    )
+
+
+@app.post("/ocr-pdf", dependencies=[Depends(get_api_key)])
 async def ocr_pdf(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         return JSONResponse(content={"error": "Only PDF files are supported"}, status_code=400)
