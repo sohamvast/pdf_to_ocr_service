@@ -23,8 +23,7 @@ app = FastAPI()
 # Dependency to validate API Key
 def get_api_key(api_key_header: Optional[str] = Depends(api_key_header)):
     expected_api_key = os.environ.get("API_KEY")
-    print('expected_api_key: ',expected_api_key)
-    print('api_key_header: ',api_key_header)
+    print('########################## Executing API Key Validation ########################## ')
     if api_key_header == expected_api_key:
         return api_key_header
     raise HTTPException(
@@ -37,6 +36,8 @@ def get_api_key(api_key_header: Optional[str] = Depends(api_key_header)):
 async def ocr_pdf(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         return JSONResponse(content={"error": "Only PDF files are supported"}, status_code=400)
+
+    print('########################## Executing OCR Action ########################## ')
 
     # Create a temporary working directory
     with tempfile.TemporaryDirectory() as tmpdir:
